@@ -2,11 +2,15 @@
 #include "Console.h"
 #include "Features.h"
 #include "Pointers.h"
+#include "Hooking.h"
+#include "Renderer.h"
 
 void MainLoop()
 {
 	Console::Create();
 	Pointers::Scan();
+	Hooking::Create();
+	Renderer::Create();
 		
 	while (g_Running)
 	{
@@ -18,6 +22,8 @@ void MainLoop()
 		std::this_thread::sleep_for(25ms);
 	}
 
+	Renderer::Destroy();
+	Hooking::Destroy();
 	Console::Destroy();
 }
 
