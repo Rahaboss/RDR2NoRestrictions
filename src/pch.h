@@ -15,6 +15,12 @@
 #include <dxgi1_5.h>
 #include <d3d12.h>
 
+// Third-party libraries
+#include <imgui.h>
+#include <imgui_impl_vulkan.h>
+#include <imgui_impl_dx12.h>
+#include <imgui_impl_win32.h>
+
 // Global variables
 inline HMODULE g_Module; // DLL handle (used to exit thread)
 inline HMODULE g_GameModule; // Game handle

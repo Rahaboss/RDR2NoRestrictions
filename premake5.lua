@@ -62,21 +62,51 @@ workspace "RDR2NoRestrictions"
 
 		-- .lib locations
 		libdirs {
-			"bin/lib/%{cfg.buildcfg}"
+			"bin/lib/%{cfg.buildcfg}",
+			"%VULKAN_SDK%/lib"
 		}
 		
 		-- .lib links
 		links {
-			
+			"ImGui",
+			"vulkan-1"
 		}
 
 		includedirs {
-			"src"
+			"src",
+			"vendor/ImGui",
+			"vendor/ImGui/backends",
+			"%VULKAN_SDK%/include"
 		}
 
 		disablewarnings {
 			"4838", -- Narrowing conversion
 			"26812", -- Prefer "enum class"
 			"26819", -- Unannotated fallthrough between switch labels
+			"33011" -- Unchecked lower bound for enum key/source as index
+		}
+
+	project "ImGui"
+		kind "StaticLib" -- .lib
+		language "C++"
+		cppdialect "C++11"
+		location "src" -- .vcxproj file location
+
+		files {
+			"vendor/%{prj.name}/*.cpp",
+			"vendor/%{prj.name}/*.h",
+			"vendor/%{prj.name}/backends/imgui_impl_vulkan.*",
+			"vendor/%{prj.name}/backends/imgui_impl_dx12.*",
+			"vendor/%{prj.name}/backends/imgui_impl_win32.*"
+		}
+
+		includedirs {
+			"vendor/%{prj.name}",
+			"%VULKAN_SDK%/include"
+		}
+		
+		disablewarnings {
+			"26812", -- Prefer "enum class"
+			"28020", -- The expression ... is not true at this call
 			"33011" -- Unchecked lower bound for enum key/source as index
 		}
