@@ -4,13 +4,23 @@
 #include "Pointers.h"
 #include "Hooking.h"
 #include "Renderer.h"
+#include "Fiber.h"
+#include "JobQueue.h"
 
 void MainLoop()
 {
 	Console::Create();
 	Pointers::Scan();
+
+	Fiber MainFiber(Features::OnTick);
+	g_FiberCollection.push_back(&MainFiber);
+
+	Fiber JobQueueFiber(Features::RunJobQueue);
+	g_FiberCollection.emplace_back(&JobQueueFiber);
+
 	Hooking::Create();
 	Renderer::Create();
+	Hooking::Enable();
 		
 	while (g_Running)
 	{
@@ -22,8 +32,11 @@ void MainLoop()
 		std::this_thread::sleep_for(25ms);
 	}
 
-	Renderer::Destroy();
+	Hooking::Disable();
 	Hooking::Destroy();
+	Renderer::Destroy();
+	JobQueueFiber.Destroy();
+	MainFiber.Destroy();
 	Console::Destroy();
 }
 

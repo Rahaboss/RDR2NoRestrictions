@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "rage/pgPtrCollection.h"
 
 typedef HRESULT (STDMETHODCALLTYPE* SwapChainPresent_t)(IDXGISwapChain3*, UINT, UINT);
 
@@ -12,4 +13,8 @@ namespace Pointers
 	inline IDXGISwapChain3** SwapChain{};
 	inline SwapChainPresent_t SwapChainPresent{};
 	inline ID3D12CommandQueue** CommandQueue{};
+
+	inline void* RunScriptThreads{};
+	inline rage::pgPtrCollection* ThreadCollection{};
+	inline rage::scrThread** ActiveThread{};
 }

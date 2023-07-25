@@ -1,3 +1,6 @@
 [submodule "vendor/ImGui"]
 	path = vendor/ImGui
 	url = git@github.com:ocornut/imgui.git
+[submodule "vendor/MinHook"]
+	path = vendor/MinHook
+	url = git@github.com:TsudaKageyu/minhook.git

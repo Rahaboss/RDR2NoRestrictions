@@ -8,6 +8,8 @@
 #include <vector>
 #include <string>
 #include <string_view>
+#include <functional>
+#include <queue>
 
 // Windows
 #include <Windows.h>
@@ -20,6 +22,7 @@
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_dx12.h>
 #include <imgui_impl_win32.h>
+#include <MinHook.h>
 
 // Global variables
 inline HMODULE g_Module; // DLL handle (used to exit thread)

@@ -69,14 +69,16 @@ workspace "RDR2NoRestrictions"
 		-- .lib links
 		links {
 			"ImGui",
-			"vulkan-1"
+			"vulkan-1",
+			"MinHook"
 		}
 
 		includedirs {
 			"src",
 			"vendor/ImGui",
 			"vendor/ImGui/backends",
-			"%VULKAN_SDK%/include"
+			"%VULKAN_SDK%/include",
+			"vendor/MinHook/include"
 		}
 
 		disablewarnings {
@@ -109,4 +111,19 @@ workspace "RDR2NoRestrictions"
 			"26812", -- Prefer "enum class"
 			"28020", -- The expression ... is not true at this call
 			"33011" -- Unchecked lower bound for enum key/source as index
+		}
+
+	project "MinHook"
+		kind "StaticLib" -- .lib
+		language "C"
+		location "src" -- Project file location
+
+		files {
+			"vendor/MinHook/src/**.c",
+			"vendor/MinHook/src/**.h",
+			"vendor/MinHook/src/include/*"
+		}
+
+		includedirs {
+			"vendor/%{prj.name}/include"
 		}

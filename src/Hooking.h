@@ -2,11 +2,15 @@
 
 #include "pch.h"
 #include "VMTHook.h"
+#include "DetourHook.h"
+#include "rage/pgPtrCollection.h"
 
 namespace Hooking
 {
 	void Create();
 	void Destroy();
+	void Enable();
+	void Disable();
 
 	inline VMTHook SwapChain;
 	inline constexpr size_t SwapChainMethodCount = 41, SwapChainPresentIndex = 8, SwapChainResizeBuffersIndex = 13;
@@ -15,4 +19,7 @@ namespace Hooking
 
 	inline WNDPROC WndProc;
 	LRESULT CALLBACK WndProcHook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	inline DetourHook RunScriptThreads;
+	bool RunScriptThreadsHook(rage::pgPtrCollection* this_, uint32_t ops);
 }

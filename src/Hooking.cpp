@@ -2,15 +2,37 @@
 #include "Hooking.h"
 #include "RendererD3D12.h"
 #include "Menu.h"
+#include "Features.h"
+#include "Pointers.h"
+#include "Fiber.h"
 
 void Hooking::Create()
 {
 	printf("Creating hooks.\n");
+	assert(MH_Initialize() == MH_OK);
+
+	RunScriptThreads.Create(Pointers::RunScriptThreads, RunScriptThreadsHook);
 }
 
 void Hooking::Destroy()
 {
 	printf("Destroying hooks.\n");
+
+	RunScriptThreads.Destroy();
+
+	assert(MH_Uninitialize() == MH_OK);
+}
+
+void Hooking::Enable()
+{
+	printf("Enabling hooks.\n");
+	assert(MH_EnableHook(MH_ALL_HOOKS) == MH_OK);
+}
+
+void Hooking::Disable()
+{
+	printf("Disabling hooks.\n");
+	assert(MH_DisableHook(MH_ALL_HOOKS) == MH_OK);
 }
 
 HRESULT STDMETHODCALLTYPE Hooking::SwapChainPresentHook(IDXGISwapChain3* SwapChain, UINT SyncInterval, UINT Flags)
@@ -34,9 +56,8 @@ HRESULT STDMETHODCALLTYPE Hooking::SwapChainResizeBuffersHook(IDXGISwapChain* Sw
 	return Result;
 }
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 static POINT s_CursorCoords{};
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT Hooking::WndProcHook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_KEYUP && wParam == VK_INSERT)
@@ -55,4 +76,15 @@ LRESULT Hooking::WndProcHook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	// Always call the original event handler even if menu is open
 	return CallWindowProc(WndProc, hwnd, uMsg, wParam, lParam);
+}
+
+static constexpr rage::joaat_t s_MainHash = rage::joaat("main");
+bool Hooking::RunScriptThreadsHook(rage::pgPtrCollection* this_, uint32_t ops)
+{
+	bool Result = RunScriptThreads.GetOriginal<decltype(&RunScriptThreadsHook)>()(this_, ops);
+
+	if (g_Running)
+		Features::ExecuteAsThread(s_MainHash, ScriptThreadTick);
+
+	return Result;
 }
