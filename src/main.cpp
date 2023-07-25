@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "Console.h"
 #include "Features.h"
+#include "Pointers.h"
 
 void MainLoop()
 {
 	Console::Create();
+	Pointers::Scan();
 		
 	while (g_Running)
 	{

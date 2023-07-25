@@ -5,6 +5,9 @@
 #include <cassert>
 #include <chrono>
 #include <thread>
+#include <vector>
+#include <string>
+#include <string_view>
 
 // Windows
 #include <Windows.h>
@@ -20,4 +23,6 @@ inline HANDLE g_MainThread; // Main thread handle (must be closed before exiting
 inline std::atomic_bool g_Running = true; // Set to false to eject
 
 // Enable literal macros
-using namespace std::chrono_literals;
+using namespace std::literals::chrono_literals;
+using namespace std::literals::string_literals;
+using namespace std::literals::string_view_literals;
