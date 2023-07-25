@@ -4,9 +4,11 @@
 #include "rage/pgPtrCollection.h"
 #include "Fiber.h"
 #include "JobQueue.h"
+#include "rage/Natives.h"
 
 void Features::OnSetup()
 {
+	printf("Hello, %s!\n", PLAYER::GET_PLAYER_NAME(PLAYER::PLAYER_ID()));
 }
 
 void Features::OnTick()
@@ -15,6 +17,18 @@ void Features::OnTick()
 
 void Features::OnExit()
 {
+	QUEUE_JOB(=)
+	{
+		// Run any script related cleanup here
+		g_Running = false;
+	}
+	END_JOB()
+
+	// Wait for script cleanup
+	const uint64_t EndTime = GetTickCount64() + 1000;
+	while (g_Running && GetTickCount64() < EndTime)
+		std::this_thread::sleep_for(10ms);
+
 	g_Running = false;
 }
 
