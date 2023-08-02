@@ -5,14 +5,16 @@
 #include "Fiber.h"
 #include "JobQueue.h"
 #include "rage/Natives.h"
+#include "Menu.h"
 
 void Features::OnSetup()
 {
-	printf("Hello, %s!\n", PLAYER::GET_PLAYER_NAME(PLAYER::PLAYER_ID()));
 }
 
 void Features::OnTick()
 {
+	if (Menu::IsOpen)
+		PAD::DISABLE_ALL_CONTROL_ACTIONS(0);
 }
 
 void Features::OnExit()
@@ -88,4 +90,38 @@ void Features::YieldThread(uint32_t DurationMS)
 void Features::RunJobQueue()
 {
 	g_JobQueue.Run();
+}
+
+static std::filesystem::path s_ConfigPath;
+void Features::CreateConfigPath()
+{
+	// Get Windows %APPDATA% environment variable
+	char* Buffer = nullptr;
+	size_t BufferCount = 0;
+	_dupenv_s(&Buffer, &BufferCount, "APPDATA");
+	assert(Buffer); // Fix _dupenv_s warning
+	s_ConfigPath = Buffer;
+	delete Buffer;
+
+	// Change path to %APPDATA%/RDR2NoRestrictions
+	s_ConfigPath.append("RDR2NoRestrictions");
+
+	// Create folder at path if it doesn't exist
+	if (!std::filesystem::exists(s_ConfigPath))
+	{
+		std::filesystem::create_directory(s_ConfigPath);
+		printf("Created configuration directory at: %s.\n", s_ConfigPath.string().c_str());
+	}
+	// If a file not a folder at that path exists, replace with folder
+	else if (!std::filesystem::is_directory(s_ConfigPath))
+	{
+		std::filesystem::remove(s_ConfigPath);
+		std::filesystem::create_directory(s_ConfigPath);
+		printf("Created configuration directory at: %s.\n", s_ConfigPath.string().c_str());
+	}
+}
+
+std::filesystem::path Features::GetConfigPath()
+{
+	return s_ConfigPath;
 }

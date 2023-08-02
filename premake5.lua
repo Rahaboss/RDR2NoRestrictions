@@ -14,7 +14,7 @@ workspace "RDR2NoRestrictions"
 	-- Locations
 	startproject "RDR2NoRestrictions"
 	targetdir "bin/%{cfg.buildcfg}/%{prj.name}"
-	objdir "bin/%{cfg.buildcfg}/%{prj.name}"
+	objdir "int/%{cfg.buildcfg}/%{prj.name}"
 
 	-- Optimizations
 	vectorextensions "SSE4.2"
@@ -78,7 +78,8 @@ workspace "RDR2NoRestrictions"
 			"vendor/ImGui",
 			"vendor/ImGui/backends",
 			"%VULKAN_SDK%/include",
-			"vendor/MinHook/include"
+			"vendor/MinHook/include",
+			"vendor/json/single_include/nlohmann"
 		}
 
 		disablewarnings {

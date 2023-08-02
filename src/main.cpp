@@ -6,10 +6,13 @@
 #include "Renderer.h"
 #include "Fiber.h"
 #include "JobQueue.h"
+#include "Settings.h"
 
 void MainLoop()
 {
 	Console::Create();
+	Features::CreateConfigPath();
+	Settings::Create();
 	Pointers::Scan();
 
 	Fiber MainFiber(Features::OnTick);
@@ -18,8 +21,8 @@ void MainLoop()
 	Fiber JobQueueFiber(Features::RunJobQueue);
 	g_FiberCollection.emplace_back(&JobQueueFiber);
 
-	Hooking::Create();
 	Renderer::Create();
+	Hooking::Create();
 	Hooking::Enable();
 		
 	while (g_Running)
@@ -37,6 +40,7 @@ void MainLoop()
 	Renderer::Destroy();
 	JobQueueFiber.Destroy();
 	MainFiber.Destroy();
+	Settings::Destroy();
 	Console::Destroy();
 }
 

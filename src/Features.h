@@ -19,4 +19,7 @@ namespace Features
 	void ExecuteAsThread(rage::joaat_t ScriptHash, void (*Function)());
 	void YieldThread(uint32_t DurationMS = 0);
 	void RunJobQueue();
+
+	void CreateConfigPath();
+	std::filesystem::path GetConfigPath();
 }

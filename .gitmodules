@@ -4,3 +4,6 @@
 [submodule "vendor/MinHook"]
 	path = vendor/MinHook
 	url = git@github.com:TsudaKageyu/minhook.git
+[submodule "vendor/json"]
+	path = vendor/json
+	url = git@github.com:nlohmann/json.git

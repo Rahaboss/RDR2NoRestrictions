@@ -12,12 +12,6 @@ void RendererD3D12::Create()
 	CommandQueue = *Pointers::CommandQueue;
 	hWnd = FindWindow(L"sgaWindow", NULL);
 
-	// Create hooks
-	Hooking::SwapChain.Create(SwapChain, Hooking::SwapChainMethodCount);
-	Hooking::SwapChain.Hook(Hooking::SwapChainPresentIndex, Hooking::SwapChainPresentHook);
-	//Hooking::SwapChain.Hook(Hooking::SwapChainResizeBuffersIndex, Hooking::SwapChainResizeBuffersHook);
-	Hooking::SwapChain.Enable();
-
 	assert(SUCCEEDED(SwapChain->GetDevice(IID_PPV_ARGS(&Device))));
 
 	DXGI_SWAP_CHAIN_DESC Desc;
@@ -69,6 +63,12 @@ void RendererD3D12::Create()
 
 	// Setup ImGui
 	CreateImGui();
+
+	// Create hooks
+	Hooking::SwapChain.Create(SwapChain, Hooking::SwapChainMethodCount);
+	Hooking::SwapChain.Hook(Hooking::SwapChainPresentIndex, Hooking::SwapChainPresentHook);
+	//Hooking::SwapChain.Hook(Hooking::SwapChainResizeBuffersIndex, Hooking::SwapChainResizeBuffersHook);
+	Hooking::SwapChain.Enable();
 }
 
 void RendererD3D12::CreateImGui()
@@ -82,8 +82,7 @@ void RendererD3D12::CreateImGui()
 
 	// Initialize ImGui backends
 	ImGui_ImplWin32_Init(hWnd);
-	ImGui_ImplDX12_Init(Device, BufferCount, DXGI_FORMAT_R8G8B8A8_UNORM,
-		DescriptorHeapImGuiRender,
+	ImGui_ImplDX12_Init(Device, BufferCount, DXGI_FORMAT_R8G8B8A8_UNORM, DescriptorHeapImGuiRender,
 		DescriptorHeapImGuiRender->GetCPUDescriptorHandleForHeapStart(),
 		DescriptorHeapImGuiRender->GetGPUDescriptorHandleForHeapStart());
 	ImGui_ImplDX12_CreateDeviceObjects();
@@ -99,8 +98,6 @@ void RendererD3D12::Destroy()
 
 	Hooking::SwapChain.Disable();
 	Hooking::SwapChain.Destroy();
-
-	//ImGui_ImplDX12_Shutdown();
 }
 
 void RendererD3D12::Present()

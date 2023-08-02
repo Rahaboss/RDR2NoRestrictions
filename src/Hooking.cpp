@@ -78,13 +78,12 @@ LRESULT Hooking::WndProcHook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return CallWindowProc(WndProc, hwnd, uMsg, wParam, lParam);
 }
 
-static constexpr rage::joaat_t s_MainHash = rage::joaat("main");
 bool Hooking::RunScriptThreadsHook(rage::pgPtrCollection* this_, uint32_t ops)
 {
 	bool Result = RunScriptThreads.GetOriginal<decltype(&RunScriptThreadsHook)>()(this_, ops);
 
 	if (g_Running)
-		Features::ExecuteAsThread(s_MainHash, ScriptThreadTick);
+		Features::ExecuteAsThread(RAGE_JOAAT("main"), ScriptThreadTick);
 
 	return Result;
 }
