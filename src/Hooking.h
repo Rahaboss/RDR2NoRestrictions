@@ -4,6 +4,7 @@
 #include "VMTHook.h"
 #include "DetourHook.h"
 #include "rage/pgPtrCollection.h"
+#include "rage/scrNativeCallContext.h"
 
 namespace Hooking
 {
@@ -22,4 +23,16 @@ namespace Hooking
 
 	inline DetourHook RunScriptThreads;
 	bool RunScriptThreadsHook(rage::pgPtrCollection* this_, uint32_t ops);
+
+	// DLC spoofing
+	inline DetourHook IsDLCPresent;
+	void IsDLCPresentHook(rage::scrNativeCallContext* Context);
+
+	// No Snipers
+	inline DetourHook ShootBullet;
+	void ShootBulletHook(rage::scrNativeCallContext* Context);
+
+	// No Snipers
+	inline DetourHook IsEntityInArea;
+	void IsEntityInAreaHook(rage::scrNativeCallContext* Context);
 }

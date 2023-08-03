@@ -6,6 +6,8 @@
 #include "JobQueue.h"
 #include "rage/Natives.h"
 #include "Menu.h"
+#include "ScriptGlobal.h"
+#include "JobQueue.h"
 
 void Features::OnSetup()
 {
@@ -15,6 +17,15 @@ void Features::OnTick()
 {
 	if (Menu::IsOpen)
 		PAD::DISABLE_ALL_CONTROL_ACTIONS(0);
+
+	if (g_Settings["disable_cutscene_borders"].get<bool>())
+	{
+		CAM::_REQUEST_LETTER_BOX_OVERTIME(-1, -1, false, 17, true, false);
+		CAM::_FORCE_LETTER_BOX_THIS_UPDATE();
+	}
+
+	if (g_Settings["disable_invisible_snipers"].get<bool>() && Features::IsEpilogueUnlocked())
+		SetDisablePinkertonPatrols(true);
 }
 
 void Features::OnExit()
@@ -124,4 +135,101 @@ void Features::CreateConfigPath()
 std::filesystem::path Features::GetConfigPath()
 {
 	return s_ConfigPath;
+}
+
+Entity Features::GetMainEntity()
+{
+	Ped player = PLAYER::PLAYER_PED_ID();
+	
+	if (Ped mount = PED::GET_MOUNT(player))
+		return mount;
+	
+	if (Vehicle vehicle = PED::GET_VEHICLE_PED_IS_IN(player, false))
+		return vehicle;
+	
+	return player;
+}
+
+void Features::Teleport(float x, float y, float z)
+{
+	ENTITY::SET_ENTITY_COORDS(GetMainEntity(), x, y, z, false, false, false, false);
+}
+
+void Features::Teleport(const Vector3& pos)
+{
+	Teleport(pos.x, pos.y, pos.z);
+}
+
+void Features::TeleportOnGround(float x, float y, float z)
+{
+	QUEUE_JOB(=)
+	{
+		LoadGround(x, y, z);
+		Teleport(x, y, z - 1.0f);
+		YieldThread();
+		ENTITY::PLACE_ENTITY_ON_GROUND_PROPERLY(GetMainEntity(), true);
+	}
+	END_JOB()
+}
+
+void Features::TeleportOnGround(const Vector3& pos)
+{
+	TeleportOnGround(pos.x, pos.y, pos.z);
+}
+
+bool Features::LoadGround(float x, float y, float z)
+{
+	float groundZ;
+	const uint8_t attempts = 10;
+
+	for (uint8_t i = 0; i < attempts; i++)
+	{
+		// Only request a collision after the first try failed because the location might already be loaded on first attempt.
+		for (uint16_t j = 0; i && j < 1000; j += 100)
+		{
+			STREAMING::REQUEST_COLLISION_AT_COORD(x, y, (float)j);
+
+			YieldThread();
+		}
+
+		if (MISC::GET_GROUND_Z_FOR_3D_COORD(x, y, 1000.f, &groundZ, false))
+		{
+			z = groundZ + 1.f;
+
+			return true;
+		}
+
+		YieldThread();
+	}
+
+	return false;
+}
+
+bool Features::LoadGround(const Vector3& pos)
+{
+	return LoadGround(pos.x, pos.y, pos.z);
+}
+
+void Features::SetDisablePinkertonPatrols(bool Toggle)
+{
+	if (bool* b = ScriptGlobal(1934266).At(56).Get<bool*>())
+		*b = Toggle;
+}
+
+bool Features::IsEpilogueUnlocked()
+{
+	if (Hash* Global_1946054_f_1 = ScriptGlobal(1946054).At(1).Get<Hash*>())
+		return (*Global_1946054_f_1) == RAGE_JOAAT("MPC_PLAYER_TYPE_SP_MARSTON");
+
+	return false;
+}
+
+void Features::RevealMap()
+{
+	QUEUE_JOB(=)
+	{
+		MAP::SET_MINIMAP_HIDE_FOW(true);
+		MAP::_REVEAL_MINIMAP_FOW(0);
+	}
+	END_JOB()
 }

@@ -5,6 +5,7 @@
 #include "Features.h"
 #include "Pointers.h"
 #include "Fiber.h"
+#include "rage/Natives.h"
 
 void Hooking::Create()
 {
@@ -12,12 +13,18 @@ void Hooking::Create()
 	assert(MH_Initialize() == MH_OK);
 
 	RunScriptThreads.Create(Pointers::RunScriptThreads, RunScriptThreadsHook);
+	IsDLCPresent.Create(NativeContext::GetHandler(0x2763DC12BBE2BB6F), IsDLCPresentHook);
+	ShootBullet.Create(NativeContext::GetHandler(0x867654CBC7606F2C), ShootBulletHook);
+	IsEntityInArea.Create(NativeContext::GetHandler(0xD3151E53134595E5), IsEntityInAreaHook);
 }
 
 void Hooking::Destroy()
 {
 	printf("Destroying hooks.\n");
 
+	IsEntityInArea.Destroy();
+	ShootBullet.Destroy();
+	IsDLCPresent.Destroy();
 	RunScriptThreads.Destroy();
 
 	assert(MH_Uninitialize() == MH_OK);
@@ -86,4 +93,58 @@ bool Hooking::RunScriptThreadsHook(rage::pgPtrCollection* this_, uint32_t ops)
 		Features::ExecuteAsThread(RAGE_JOAAT("main"), ScriptThreadTick);
 
 	return Result;
+}
+
+void Hooking::IsDLCPresentHook(rage::scrNativeCallContext* Context)
+{
+	// Get DLC hash
+	Hash DLCHash = Context->GetArg<Hash>(0);
+
+	// Run original function
+	IsDLCPresent.GetOriginal<decltype(&IsDLCPresentHook)>()(Context);
+
+	// Spoof return value if needed
+	switch (DLCHash)
+	{
+	case RAGE_JOAAT("DLC_PHYSPREORDERCONTENT"):
+		if (g_Settings["enable_phys_preorder"].get<bool>())
+			Context->SetRet<BOOL>(TRUE);
+		break;
+	case RAGE_JOAAT("DLC_PREORDERCONTENT"):
+		if (g_Settings["enable_preorder"].get<bool>())
+			Context->SetRet<BOOL>(TRUE);
+		break;
+	case RAGE_JOAAT("DLC_SPECIALEDITION"):
+		if (g_Settings["enable_special_edition"].get<bool>())
+			Context->SetRet<BOOL>(TRUE);
+		break;
+	case RAGE_JOAAT("DLC_ULTIMATEEDITION"):
+		if (g_Settings["enable_ultimate_edition"].get<bool>())
+			Context->SetRet<BOOL>(TRUE);
+		break;
+	case RAGE_JOAAT("DLC_TREASUREMAP"):
+		if (g_Settings["enable_treasure_map_bonus"].get<bool>())
+			Context->SetRet<BOOL>(TRUE);
+		break;
+	}
+}
+
+void Hooking::ShootBulletHook(rage::scrNativeCallContext* Context)
+{
+	if (Context->GetArg<Hash>(8) == RAGE_JOAAT("WEAPON_SNIPERRIFLE_CARCANO") && g_Settings["disable_invisible_snipers"].get<bool>())
+		return;
+
+	ShootBullet.GetOriginal<decltype(&ShootBulletHook)>()(Context);
+}
+
+void Hooking::IsEntityInAreaHook(rage::scrNativeCallContext* Context)
+{
+	if (Context->GetArg<Entity>(0) == PLAYER::PLAYER_PED_ID() && Context->GetArg<uint32_t>(1) == 0x44BBD654 // 1502.69775391f
+		&& g_Settings["disable_invisible_snipers"].get<bool>())
+	{
+		Context->SetRet<BOOL>(FALSE); // Spoof return value
+		return;
+	}
+
+	return IsEntityInArea.GetOriginal<decltype(&IsEntityInAreaHook)>()(Context);
 }

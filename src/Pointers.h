@@ -19,4 +19,5 @@ namespace Pointers
 	inline rage::pgPtrCollection* ThreadCollection{};
 	inline rage::scrThread** ActiveThread{};
 	inline GetNativeHandler_t GetNativeHandler{};
+	inline int64_t** ScriptGlobals{};
 }

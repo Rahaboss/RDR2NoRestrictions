@@ -4,37 +4,32 @@
 
 namespace Settings
 {
-	static json s_DefaultSettings{ R"(
+	static json s_DefaultSettings = R"(
 	{
-		"disable_guarma_snipers": false,
-		"disable_west_eliz_snipers": false,
-		"disable_pinkerton_patrols": false,
 		"disable_cutscene_borders": false,
+		"disable_invisible_snipers": false,
+		"disable_pinkerton_patrols": false,
 		"enable_phys_preorder": false,
 		"enable_preorder": false,
 		"enable_special_edition": false,
 		"enable_ultimate_edition": false,
 		"enable_treasure_map_bonus": false
 	}
-	)"_json };
-
-	void WriteDefaultSettings(const std::filesystem::path& FilePath)
-	{
-		std::ofstream File(FilePath);
-		assert(File.good());
-		File << s_DefaultSettings.dump(4) << '\n';
-		File.close();
-
-		g_Settings.clear();
-		g_Settings = s_DefaultSettings;
-	}
+	)"_json;
 
 	void Save(const std::filesystem::path& FilePath)
 	{
 		std::ofstream File(FilePath);
 		assert(File.good());
-		File << g_Settings.dump(4) << '\n';
+		File << g_Settings.dump(1, '\t') << '\n';
 		File.close();
+	}
+
+	void WriteDefaultSettings(const std::filesystem::path& FilePath)
+	{
+		printf("Loading default settings.\n");
+		g_Settings = s_DefaultSettings;
+		Save(FilePath);
 	}
 
 	void Create()
@@ -45,13 +40,13 @@ namespace Settings
 		if (!File)
 		{
 			WriteDefaultSettings(Path);
-			File.open(Path, std::fstream::in);
+			return;
 		}
 
-		assert(File.good());
 		File >> g_Settings;
 		File.close();
 
+		// Check for missing settings
 		if (g_Settings.size() != s_DefaultSettings.size())
 		{
 			bool UpdateFile = false;
@@ -70,10 +65,13 @@ namespace Settings
 				Save(Path);
 			}
 		}
+		
+		printf("Settings loaded.\n");
 	}
 
 	void Destroy()
 	{
+		printf("Saving settings.\n");
 		std::filesystem::path Path(Features::GetConfigPath().append("Settings.json"));
 		Save(Path);
 	}
